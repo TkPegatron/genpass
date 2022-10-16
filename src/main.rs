@@ -20,8 +20,7 @@ pub struct PasswordConfig {
     #[arg(long, default_value = "@", help="Character to separator the key from the phrase")] key_separator: String,
     #[arg(short = 'n', long, default_value = "1", help = "Number of passwords to generate")] number_of_passwords: u32,
     #[arg(short = 's', long, default_value = "fancy-horse", help = "Specify the style of password to generate")] password_style: String,
-    #[arg(short = 'H', long)] hash: bool,
-    #[arg(long = "type", default_value = "sha")] hash_type: String
+    #[arg(long = "type", default_value = "plaintext", value_parser = (["plaintext","argon2","sha512","scrypt"]))] hash_type: String
 }
 
 
@@ -45,10 +44,7 @@ fn main() {
                 }
         }
 
-        match config.hash {
-            true => {println!("{}",crypt_typematch(&config.hash_type, password))}
-            false => {println!("{}", password)}
-        }
+        println!("{}",crypt_typematch(&config.hash_type, password));
     }
 }
 
@@ -61,6 +57,9 @@ fn crypt_typematch(hash_type: &String, password: String) -> String {
     }
     else if Regex::new(r"sha(-?512)?").unwrap().is_match(hash_type.as_str()) {
         return hash_utils::hash_sha512(password)
+    }
+    else if hash_type == "plaintext" {
+        return password
     }
     else {
         // Generic error when no type is matched
