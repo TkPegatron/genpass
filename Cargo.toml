@@ -1,0 +1,12 @@
+[package]
+name = "passgen"
+authors = ["Elliana Perry <elliana.perry@gmail.com>"]
+version = "2022.10.15-nightly"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = "0.8.5"
+regex = "1.6.0"
+clap = { version = "4.0.15", features = ["derive","color"] }
