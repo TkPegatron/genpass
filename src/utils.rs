@@ -40,7 +40,7 @@ pub fn get_correct_horse_words(config: &PasswordConfig) -> Vec<String> {
       ).unwrap();
   // Break the corpus into a vector of strings and filter it against the regular expression
   // TODO: Ensure the first character in each string is capitalized
-  // TODO: Filter out hyphenated words for memorizability?
+  // TODO: Filter out hyphenated words for memorability?
   
   let corpus_vector = word_corpus_string
       .split("\n")
@@ -63,9 +63,8 @@ pub fn get_correct_horse_words(config: &PasswordConfig) -> Vec<String> {
 //    println!("{}", std::any::type_name::<T>())
 //}
 
-
 //fn longest_contiguous_sequence(wordlist: &[String]) {
-  // For forcing the words into an aliteration
+  // For forcing the words into an alliteration
 //    // TODO: Implement algorithm
 //    //    class Solution:
 //    //    def longestContiguousSequence(self, words):
