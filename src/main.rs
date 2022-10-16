@@ -1,6 +1,7 @@
 mod utils;
 mod styles;
 use clap::Parser;
+use colored::*;
 
 pub const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 pub const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -26,13 +27,17 @@ fn main() {
     let horse_words = utils::get_correct_horse_words(&config);
 
     let mut password: String = String::new();
-
+    
     for _ in 0..config.number_of_passwords {
         match config.password_style.as_str() {
             "fancy-horse" => {password = styles::fancy_correct_horse(&config, &horse_words)}
             "correct-horse" => {password = styles::correct_horse(&config, &horse_words)}
             "random" => {password = styles::random_ascii(&config)}
-            _ => {println!("Error: Unknown Style `{}`", config.password_style); break;}
+            _ => {println!("{}: Unknown Style `{}`",
+                    "Error".to_string().red(), 
+                    config.password_style.yellow());
+                    break;
+                }
         }
         println!("{}", password)
     }
