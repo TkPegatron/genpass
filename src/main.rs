@@ -20,7 +20,7 @@ pub struct PasswordConfig {
     #[arg(long, default_value = "@", help="Character to separator the key from the phrase")] key_separator: String,
     #[arg(short = 'n', long, default_value = "1", help = "Number of passwords to generate")] number_of_passwords: u32,
     #[arg(short = 's', long, default_value = "fancy-horse", help = "Specify the style of password to generate")] password_style: String,
-    #[arg(long = "type", default_value = "plaintext", value_parser = (["plaintext","argon2","sha512","scrypt"]))] hash_type: String
+    #[arg(long = "type", default_value = "plaintext", value_parser =["plaintext","argon2","sha512","scrypt"])] hash_type: String
 }
 
 
@@ -30,7 +30,7 @@ fn main() {
 
     let horse_words = utils::get_correct_horse_words(&config);
 
-    let mut password: String = String::new();
+    let mut password: String;
 
     for _ in 0..config.number_of_passwords {
         match config.password_style.as_str() {

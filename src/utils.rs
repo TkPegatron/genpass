@@ -25,7 +25,7 @@ pub fn rng_alphanumeric(length: u32, charset: &str) -> String {
   }).collect();
 }
 
-pub fn get_correct_horse_words(config: &PasswordConfig) -> Vec<String> {
+pub fn get_correct_horse_words(_config: &PasswordConfig) -> Vec<String> {
   // Load a word corpus file as a string
   // TODO: Read user-defined corpus
   // TODO: Automatically download and store this in user's cache home

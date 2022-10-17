@@ -3,12 +3,11 @@ use scrypt::{ScryptParams,scrypt_simple};
 use argon2::{
   password_hash::{
     rand_core::OsRng,
-    PasswordHash, PasswordHasher,SaltString
+    PasswordHasher,
+    SaltString
   },
   Argon2
 };
-use colored::*;
-use rand::{thread_rng,Rng};
 
 pub fn hash_argon2(password: String) -> String {
   let salt = SaltString::generate(&mut OsRng);
@@ -19,10 +18,6 @@ pub fn hash_argon2(password: String) -> String {
 pub fn hash_scrypt(password: String) -> String {
   let params = ScryptParams::new(15, 8, 1).expect("");
   return scrypt_simple(password.as_str(), &params).expect("");
-}
-
-pub fn compile_test(password: String) -> String {
-  return String::new()
 }
 
 pub fn hash_sha512(password: String) -> String {
