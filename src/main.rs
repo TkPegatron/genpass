@@ -20,14 +20,20 @@ pub struct PasswordConfig {
     #[arg(long, default_value = "@", help="Character to separator the key from the phrase")] key_separator: String,
     #[arg(short = 'n', long, default_value = "1", help = "Number of passwords to generate")] number_of_passwords: u32,
     #[arg(short = 's', long, default_value = "fancy-horse", help = "Specify the style of password to generate")] password_style: String,
-    #[arg(long = "type", default_value = "plaintext", value_parser =["plaintext","argon2","sha512","scrypt"])] hash_type: String
+    #[arg(short = 't', long = "type", default_value = "plaintext", value_parser =["plaintext","argon2","sha512","scrypt"])] hash_type: String,
+    #[arg(long, default_value = "", help = "File to load for passphrase corpus")] passphrase_corpus: String,
+    #[arg(short,long)] verbose: bool
 }
 
 fn main() {
 
     let config = PasswordConfig::parse();
 
-    let path: &str = "/home/eperry/Downloads/english-words/words.txt";
+    if config.passphrase_corpus == "" {
+        // /home/eperry/Downloads/english-words/words.txt
+        println!("{}: {}", "Error".red(), "No corpus could be loaded!");
+        std::process::exit(1)
+    }
 
     let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
 
@@ -39,7 +45,7 @@ fn main() {
 
 
     // Load word corpus and construct a vector
-    let corpus_data_string: String = utils::read_file(&path);
+    let corpus_data_string: String = utils::read_file(&config.passphrase_corpus);
     let word_corpus: Vec<&str> = corpus_data_string
         // Break data on newlines convert to String
         .split("\n")//.map(|word| {word.to_string()})
