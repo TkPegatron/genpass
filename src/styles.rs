@@ -1,4 +1,5 @@
 use rand::{thread_rng,Rng};
+use colored::*;
 
 use crate::PasswordConfig;
 use crate::UPPERCASE;
@@ -27,6 +28,43 @@ pub fn fancy_correct_horse(config: &PasswordConfig, corpus: &Vec<&str>) -> Strin
       config.key_separator,
       words.join(&config.passphrase_separator)
   );
+  if config.verbose {
+    // Gather stats for the key portion
+    let sep_entropy: f32 = utils::get_bit_entropy(
+      (1 + config.passphrase_length) as f32,
+      SYMBOLS.len() as f32
+    );
+    let key_pool = format!("{}{}",LOWERCASE,NUMBERS);
+    let key_entropy: f32 = utils::get_bit_entropy(
+      (config.key_let_length + config.key_num_length) as f32, 
+      key_pool.len() as f32
+    );
+    let pass_entropy: f32 = utils::get_bit_entropy(
+      config.passphrase_length as f32,
+      corpus.len() as f32
+    );
+    let entropy_best_case: f32 = utils::get_bit_entropy(
+      fancy_correct_horse.len() as f32,
+      format!("{}{}{}{}",
+        UPPERCASE,LOWERCASE,
+        NUMBERS,SYMBOLS
+      ).len() as f32
+    );
+    let entropy_worst_case: f32 = sep_entropy + key_entropy + pass_entropy;
+    println!(
+      "Entropy Statistics:\n  {}: {}\n  {}: {}\n",
+      "Worst".red(),
+      format!("{} bits {}",
+        entropy_worst_case.to_string().yellow(),
+        "// assumed the attacker knows format and dictionary".dimmed()
+      ),
+      "Best".green(),
+      format!("{} bits {}",
+        entropy_best_case.to_string().yellow(),
+        "// assumed the attacker knows nothing".dimmed()
+      )
+    )
+  }
   return fancy_correct_horse
 }
 
