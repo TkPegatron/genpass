@@ -23,19 +23,38 @@ pub struct PasswordConfig {
     #[arg(long = "type", default_value = "plaintext", value_parser =["plaintext","argon2","sha512","scrypt"])] hash_type: String
 }
 
-
 fn main() {
 
     let config = PasswordConfig::parse();
 
-    let horse_words = utils::get_correct_horse_words(&config);
+    let path: &str = "/home/eperry/Downloads/english-words/words.txt";
 
+    let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
+
+    // Prepare Regex for faster computation
+    let re_word_length_filter: Regex = Regex::new(format!(
+        r"[{}{}{}{}]{{{}}}",UPPERCASE,LOWERCASE,
+        NUMBERS,SYMBOLS,min_corp_word_len
+    ).as_str()).unwrap();
+
+
+    // Load word corpus and construct a vector
+    let corpus_data_string: String = utils::read_file(&path);
+    let word_corpus: Vec<&str> = corpus_data_string
+        // Break data on newlines convert to String
+        .split("\n")//.map(|word| {word.to_string()})
+        // Filter words shorter than min_corp_word_len
+        .filter(|word| {re_word_length_filter.is_match(word)})
+        .collect::<Vec<&str>>()
+    ;
+
+    // Generate password(s)
     let mut password: String;
 
     for _ in 0..config.number_of_passwords {
         match config.password_style.as_str() {
-            "fancy-horse" => {password = styles::fancy_correct_horse(&config, &horse_words)}
-            "correct-horse" => {password = styles::correct_horse(&config, &horse_words)}
+            "fancy-horse" => {password = styles::fancy_correct_horse(&config, &word_corpus)}
+            "correct-horse" => {password = styles::correct_horse(&config, &word_corpus)}
             "random" => {password = styles::random_ascii(&config)}
             _ => {println!("{}: Unknown Style `{}`",
                     "Error".to_string().red(),
@@ -43,7 +62,6 @@ fn main() {
                     break;
                 }
         }
-
         println!("{}",crypt_typematch(&config.hash_type, password));
     }
 }
