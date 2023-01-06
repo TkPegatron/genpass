@@ -10,7 +10,7 @@ ARG TZ=America/Detroit
 
 RUN apk add  --no-cache --upgrade \
     zsh bat direnv curl exa file git skim neovim starship tzdata \
-    gcc ca-certificates musl-dev
+    gcc ca-certificates musl-dev gpg gpg-agent openssh-client
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
