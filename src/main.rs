@@ -1,92 +1,116 @@
-mod utils;
-mod styles;
-mod hash_utils;
-use clap::Parser;
-use colored::*;
-use regex::Regex;
+// This program will generate passwords in the following form.
+//
+// sddfg16162:Linking.Information.Serially
+//  │    │   │└ Passphrase ──────┼───────┘
+//  │    │   └ Separator         └ Passphrase_Separator
+//  │    └ Key_Numbers
+//  └ Key_Chars
+//
 
-pub const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-pub const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
-pub const NUMBERS: &str = "0123456789";
-pub const SYMBOLS: &str = ")(*&^%$#@!~";
+// Considerations for controling the generator behavior
+//   Minimum length of words gathered from wordlist
+//   Minimum guestimated entropy acceptable to user
+//   Characters used as token seperators
+//   Number of words desired by user
+//   Style of password desired by user
 
-#[derive(Parser, Debug)]
-#[command(author, version, about)]
-pub struct PasswordConfig {
-  #[arg(long, default_value = "2", help="Number of words in passphrase section")] passphrase_length: usize,
-  #[arg(long, default_value = "4", help="Length of letters in key section")] key_let_length: u32,
-  #[arg(long, default_value = "5", help="Length of numbers in key section")] key_num_length: u32,
-  #[arg(long, default_value = ":", help="Character to separator the words of the phrase")] passphrase_separator: String,
-  #[arg(long, default_value = "@", help="Character to separator the key from the phrase")] key_separator: String,
-  #[arg(short = 'n', long, default_value = "1", help = "Number of passwords to generate")] number_of_passwords: u32,
-  #[arg(short = 's', long, default_value = "fancy-horse", help = "Specify the style of password to generate")] password_style: String,
-  #[arg(short = 't', long = "type", default_value = "plaintext", value_parser =["plaintext","argon2","sha512","scrypt"])] hash_type: String,
-  #[arg(long, default_value = "", help = "File to load for passphrase corpus")] passphrase_corpus: String,
-  #[arg(short,long)] verbose: bool
-}
+// Considerations for controlling the application behavior
+//   Where the configuration file is located
+//   Where the wordlist file is located
+
+// In-memory data needed
+//   Filtered word list
+
+use generator::{Password, Options};
+
+pub mod utils;
+//pub mod configuration;
+pub mod generator;
+pub mod hash_utils;
 
 fn main() {
 
-  let config = PasswordConfig::parse();
+    
+    // Generate a fancy horse password
+    // ===============================
+    // -{ Setup the corpus
+    let corpur_words_vector: Vec<String> = "One\nTwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\ntwenty\nthirty\nfourty"
+        .to_string().split("\n").into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
 
-  if config.passphrase_corpus == "" {
-    // /home/eperry/Downloads/english-words/words.txt
-    println!("{}: {}", "Error".red(), "No corpus could be loaded!");
-    std::process::exit(1)
-  }
+    // -{ Define the style
+    let pasword_style: generator::Styles = generator::Styles::FancyHorse { 
+        word_separator: ":".to_owned(), word_count: 3, key_num: 6, key_alp: 4 
+    };
 
-  let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
+    // -{ Define the config
+    let password_options: Options = Options {
+        corpus_words_vector: corpur_words_vector,
+      ..Default::default() //? Use the default trait to fill unspeced fields
+    };
 
-  // Prepare Regex for faster computation
-  let re_word_length_filter: Regex = Regex::new(format!(
-    r"[{}{}{}{}]{{{}}}",UPPERCASE,LOWERCASE,
-    NUMBERS,SYMBOLS,min_corp_word_len
-  ).as_str()).unwrap();
-
-
-  // Load word corpus and construct a vector
-  let corpus_data_string: String = utils::read_file(&config.passphrase_corpus);
-  let word_corpus: Vec<&str> = corpus_data_string
-    // Break data on newlines convert to String
-    .split("\n")//.map(|word| {word.to_string()})
-    // Filter words shorter than min_corp_word_len
-    .filter(|word| {re_word_length_filter.is_match(word)})
-    .collect::<Vec<&str>>()
-  ;
-
-  // Generate password(s)
-  let mut password: String;
-
-  for _ in 0..config.number_of_passwords {
-    match config.password_style.as_str() {
-      "fancy-horse" => {password = styles::fancy_correct_horse(&config, &word_corpus)}
-      "correct-horse" => {password = styles::correct_horse(&config, &word_corpus)}
-      "random" => {password = styles::random_ascii(&config)}
-      _ => {println!("{}: Unknown Style `{}`",
-          "Error".to_string().red(),
-          config.password_style.yellow());
-          break;
-        }
+    // -{ Display a collection of generated passwords
+    for _ in 0..5 {
+        let password = Password::new(&password_options, &pasword_style);
+        
+        let hash = &password.hash_sha512();
+        //let password_hash = &password.hash_sha512();
+        //let password_entropy = &password.entropy;
+        print!(
+            "\nPassword: {}\nHash: {}\nEntropy: {}\n",
+            password.data,hash,password.entropy
+        );
     }
-    println!("{}",crypt_typematch(&config.hash_type, password));
-  }
+
+
+
+    // Instanciate configuration data
+    //let configuration = configuration::PasswordOptions::new();
+
+    //Print the configuration
+    //println!("{}",utils::display_encoded_config(&configuration));
+
+    //println!("{}",
+    //    utils::rng_alphanumeric(21, "qwertyuiopasdfghjklzxcvbnm,.1234567890")
+    //);
+
+    print!("\nEND OF LINE\n")
 }
 
-fn crypt_typematch(hash_type: &String, password: String) -> String {
-  if Regex::new(r"[Aa]rgon2?").unwrap().is_match(hash_type.as_str()) {
-    return hash_utils::hash_argon2(password)
-  }
-  else if Regex::new(r"scrypt").unwrap().is_match(hash_type.as_str()) {
-    return hash_utils::hash_scrypt(password)
-  }
-  else if Regex::new(r"sha(-?512)?").unwrap().is_match(hash_type.as_str()) {
-      return hash_utils::hash_sha512(password)
-  }
-  else if hash_type == "plaintext" {
-    return password
-  }
-  else {
-    // Generic error when no type is matched
-    return format!("{}: Type not implemented `{}`", "Error".red().to_string(), hash_type)
-  }
-}
+//fn load_wordlist_pool(&self) -> Vec<String> {
+//    let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
+//    // Prepare a regex filter used to enforce minimum word length
+//    let re_word_length_filter: Regex = Regex::new(format!(
+//      r"[{}{}{}{}]{{{}}}",UPPERCASE,LOWERCASE,
+//      NUMBERS,SYMBOLS,min_corp_word_len
+//    ).as_str()).unwrap();
+//    // build vector from wordlist file
+//    let wordlist_pool = GenpassConfig::read_file(&self.wordlist_file)
+//      .split("\n")
+//      .filter(|word| {re_word_length_filter.is_match(word)})
+//      .collect::<Vec<&str>>();
+//    // Return vector
+//    return wordlist_pool
+//}
+
+//fn config_read_test(config: configuration::ApplicationOptions) {
+//    println!("DBG: Loading configuration data from file...\n");
+//
+//    // Read config file to a String
+//    let ser_config_data: String = utils::read_file(config.path_config);
+//
+//    // Deserialize config data
+//    let config_data: configuration::PasswordOptions = ron::de::from_str(&ser_config_data).unwrap();
+//
+//    // Display Serialization
+//    println!("{}\n", utils::display_encoded_config(&config_data));
+//}
+
+//fn config_default_test(config: configuration::ApplicationOptions) {
+//    println!("DBG: Loading default configuration data...\n");
+//
+//    // Instanciate deserialized config
+//    let appconfig: configuration::ApplicationOptions = configuration::ApplicationOptions::default();
+//
+//    // Display Serialized defaults
+//    println!("{}\n", utils::display_encoded_config(&configuration::PasswordOptions::default()));
+//}

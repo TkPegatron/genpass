@@ -1,0 +1,14 @@
+{
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"USERNAME": "${localEnv:USER}",
+			"UID": "1000"
+		}
+	},
+	"runArgs": ["--userns=keep-id"],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,Z",
+  "workspaceFolder": "/workspace",
+	"containerUser": "${localEnv:USER}",
+	"remoteUser": "${localEnv:USER}",
+}

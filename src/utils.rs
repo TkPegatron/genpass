@@ -13,19 +13,25 @@ pub fn get_bit_entropy(length: f32, pool: f32) -> f32 {
   return entropy
 }
 
-pub fn read_file(fp: &str) -> String {
-  // This method opens a file in read only mode and stores the data in a string
-  let path = std::path::Path::new(fp);
-  return match fs::read_to_string(path) {
+pub fn read_file(path: std::path::PathBuf) -> String {
+  return match fs::read_to_string(path.as_path()) {
       Err(why) => panic!("couldn't read {}: {}", path.display(), why),
       Ok(data) => data,
   };
 }
 
-pub fn rng_alphanumeric(length: u32, charset: &str) -> String {
-  let char_vec: Vec<char> = charset.chars().collect();
-  return (0..length).map(|_| {
-      let idx = thread_rng().gen_range(0..char_vec.len());
-      char_vec[idx] as char
-  }).collect();
+pub fn display_encoded_config<T>(data_struct: &T) -> String
+where T: ?Sized + serde::ser::Serialize {
+    // Instanciate Pretty Configuration
+    let prettyconfig = ron::ser::PrettyConfig::new()
+        .depth_limit(2)
+        .separate_tuple_members(true)
+        .enumerate_arrays(true)
+        .struct_names(true);
+
+    // Return formated data
+    return ron::ser::to_string_pretty(
+        &data_struct,
+        prettyconfig
+    ).expect("Serialization failed");
 }
