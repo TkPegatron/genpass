@@ -21,7 +21,9 @@
 // In-memory data needed
 //   Filtered word list
 
-use generator::{Password, Options};
+//TODO: Format further and organize, I am sure there is a better organization structure
+
+use generator::{Options, Password};
 
 pub mod utils;
 //pub mod configuration;
@@ -29,51 +31,46 @@ pub mod generator;
 pub mod hash_utils;
 
 fn main() {
-
-    
     // Generate a fancy horse password
     // ===============================
     // -{ Setup the corpus
-    let corpur_words_vector: Vec<String> = "One\nTwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\ntwenty\nthirty\nfourty"
-        .to_string().split("\n").into_iter().map(|s| s.to_string()).collect::<Vec<String>>();
+    let corpur_words_vector: Vec<String> =
+        "One\nTwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\ntwenty\nthirty\nfourty"
+            .to_string()
+            .split("\n")
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
 
     // -{ Define the style
-    let pasword_style: generator::Styles = generator::Styles::FancyHorse { 
-        word_separator: ":".to_owned(), word_count: 3, key_num: 6, key_alp: 4 
+    let pasword_style: generator::Styles = generator::Styles::FancyHorse {
+        word_separator: ":".to_owned(),
+        word_count: 3,
+        key_num: 6,
+        key_alp: 4,
     };
 
     // -{ Define the config
     let password_options: Options = Options {
         corpus_words_vector: corpur_words_vector,
-      ..Default::default() //? Use the default trait to fill unspeced fields
+        ..Default::default() //? Use the default trait to fill unspeced fields
     };
 
     // -{ Display a collection of generated passwords
     for _ in 0..5 {
         let password = Password::new(&password_options, &pasword_style);
-        
+
         let hash = &password.hash_sha512();
         //let password_hash = &password.hash_sha512();
         //let password_entropy = &password.entropy;
         print!(
             "\nPassword: {}\nHash: {}\nEntropy: {}\n",
-            password.data,hash,password.entropy
+            password.data, hash, password.entropy
         );
     }
 
-
-
-    // Instanciate configuration data
-    //let configuration = configuration::PasswordOptions::new();
-
-    //Print the configuration
-    //println!("{}",utils::display_encoded_config(&configuration));
-
-    //println!("{}",
-    //    utils::rng_alphanumeric(21, "qwertyuiopasdfghjklzxcvbnm,.1234567890")
-    //);
-
     print!("\nEND OF LINE\n")
+
 }
 
 //fn load_wordlist_pool(&self) -> Vec<String> {
