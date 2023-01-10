@@ -23,6 +23,9 @@
 
 //TODO: Format further and organize, I am sure there is a better organization structure
 
+use std::{path::PathBuf};
+use regex::{escape,Regex};
+
 use generator::{Options, Password};
 
 pub mod utils;
@@ -30,47 +33,60 @@ pub mod utils;
 pub mod generator;
 pub mod hash_utils;
 
+pub const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+pub const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
+pub const NUMBERS: &str = "0123456789";
+pub const SYMBOLS: &str = ":;<=>?@!\"#$%&'()*+,-./[\\]^_`{|}~";
+pub const ASCII_SYMBOLS: &str =
+    "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
 fn main() {
     // Generate a fancy horse password
     // ===============================
+
     // -{ Setup the corpus
-    let corpur_words_vector: Vec<String> =
-        "One\nTwo\nthree\nfour\nfive\nsix\nseven\neight\nnine\nten\ntwenty\nthirty\nfourty"
-            .to_string()
-            .split("\n")
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<String>>();
+    let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
+
+    // =={ Prepare a regex filter used to enforce minimum word length
+    let re_word_length_filter: Regex = Regex::new(format!(
+        r"[{}]{{{}}}",
+        escape(ASCII_SYMBOLS),
+        min_corp_word_len
+    ).as_str()).unwrap();
+
+    // =={ Load the wordlist from file
+    let words_file: PathBuf = PathBuf::from("/workspace/words.txt");
+    let corpus_words_vector = utils::read_file(words_file)
+        .split("\n")
+        .filter(|w| {re_word_length_filter.is_match(w)})
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<Vec<String>>();
+    println!("///Words file loaded....");
 
     // -{ Define the style
-    let pasword_style: generator::Styles = generator::Styles::FancyHorse {
-        word_separator: ":".to_owned(),
+    let password_style: generator::Styles = generator::Styles::FancyHorse {
+        word_separator: "_-_".to_owned(),
         word_count: 3,
-        key_num: 6,
-        key_alp: 4,
+        key_num: 5,
+        key_alp: 5,
     };
 
     // -{ Define the config
     let password_options: Options = Options {
-        corpus_words_vector: corpur_words_vector,
+        corpus_words_vector: corpus_words_vector.clone(),
         ..Default::default() //? Use the default trait to fill unspeced fields
     };
 
     // -{ Display a collection of generated passwords
     for _ in 0..5 {
-        let password = Password::new(&password_options, &pasword_style);
-
-        let hash = &password.hash_sha512();
-        //let password_hash = &password.hash_sha512();
-        //let password_entropy = &password.entropy;
-        print!(
-            "\nPassword: {}\nHash: {}\nEntropy: {}\n",
-            password.data, hash, password.entropy
-        );
+        // Generate a password struct
+        let password = Password::new(password_options.clone(), password_style.clone());
+        //print!("\nPASS: {}\nENTR: {}\n", password.data, password.entropy)
+        println!("{}", password)
     }
 
     print!("\nEND OF LINE\n")
-
 }
 
 //fn load_wordlist_pool(&self) -> Vec<String> {

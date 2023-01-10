@@ -1,5 +1,4 @@
 use std::fs;
-use rand::{thread_rng,Rng};
 
 // Entropy calculation coverage depends on the format, charset & word list length
 // ? Different formats will calculate entropy differently
