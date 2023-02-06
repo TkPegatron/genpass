@@ -48,11 +48,6 @@ struct Args {
     range: Option<u32>
 }
 
-fn print_password(p: Password) {
-    //print!("\nPASS: {}\nENTR: {}\n", p.data, p.entropy)
-    println!("{}", p)
-}
-
 fn main() {
     // Generate a fancy horse password
     // ===============================

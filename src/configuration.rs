@@ -1,11 +1,15 @@
 use crate::generator;
-use crate::utils;
-use directories_next::{BaseDirs, ProjectDirs, UserDirs};
-use regex::{escape, Regex};
+//use crate::utils;
+use directories_next::{
+    //BaseDirs,
+    ProjectDirs,
+    //UserDirs
+};
+//use regex::{escape, Regex};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 // Structure containing options that control the application
 #[derive(Debug, Deserialize, Serialize)]
@@ -48,7 +52,17 @@ impl ApplicationOptions {
             }
         };
 
-        //let corpus_words_vector = ApplicationOptions::load_corpus(corpus_file_path);
+        // =={ Prepare a regex filter used to enforce minimum word length
+        //let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
+        //let re_word_length_filter: Regex = Regex::new(
+        //    format!(
+        //        r"[{}]{{{}}}",
+        //        escape(crate::ASCII_SYMBOLS),
+        //        min_corp_word_len
+        //    )
+        //    .as_str(),
+        //)
+        //.unwrap();
         let corpus_words_vector: Vec<String> = match fs::read_to_string(corpus_file_path.as_path()) {
             Ok(data) => {
                 data.split("\n")
@@ -88,30 +102,6 @@ impl ApplicationOptions {
             },
             ..config_data
         }
-    }
-
-    fn load_corpus(corpus_file_path: PathBuf) -> Vec<String> {
-        // =={ Prepare a regex filter used to enforce minimum word length
-        //let min_corp_word_len: u32 = 4; //? Allow this to be defined perhaps.
-        //let re_word_length_filter: Regex = Regex::new(
-        //    format!(
-        //        r"[{}]{{{}}}",
-        //        escape(crate::ASCII_SYMBOLS),
-        //        min_corp_word_len
-        //    )
-        //    .as_str(),
-        //)
-        //.unwrap();
-        // =={ Load the wordlist from file and construct the word corpus
-        return utils::read_file(corpus_file_path)
-            .split("\n")
-            //? This filters by word length
-            //.filter(|w| re_word_length_filter.is_match(w))
-            //? This filters blank lines
-            .filter(|s| {![""].contains(s)})
-            .into_iter()
-            .map(|s| s.to_string())
-            .collect::<Vec<String>>();
     }
 }
 
