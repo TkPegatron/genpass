@@ -63,16 +63,27 @@ fn main() {
     //println!("{}", appopts);
 
     // -{ Display a collection of generated passwords
+    let mut passwords: Vec<String> = Vec::new();
     match args.range {
         Some(i) => {
             for _ in 0..i {
-                print_password(Password::new(appopts.password_options.clone(), appopts.password_style.clone()))
+                passwords.push(
+                    Password::new(
+                        appopts.password_options.clone(),
+                        appopts.password_style.clone()
+                    ).data
+                )
             }
         },
         None => {
-            print_password(Password::new(appopts.password_options.clone(), appopts.password_style.clone()))
+            passwords.push(
+                Password::new(
+                    appopts.password_options.clone(),
+                    appopts.password_style.clone()
+                ).data
+            )
         }
     };
 
-    print!("\nEND OF LINE\n")
+    println!("{}", passwords.join("\n"));
 }
