@@ -1,7 +1,9 @@
 use crate::hash_utils;
 use colored::{Colorize,ColoredString};
+use serde::{Deserialize, Serialize};
 use rand::{thread_rng, Rng};
 
+#[derive(Debug, Deserialize, Serialize)]
 pub enum Styles {
     BasicRand {
         length: usize,
@@ -44,18 +46,20 @@ impl Clone for Styles {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Options {
     // This should be a value >= 60 (according to Okta)
     pub target_entropy: f64,
     // These should be vectors of strings
-    pub corpus_words_vector: Vec<String>,
-    pub corpus_numeral_vector: Vec<String>,
-    pub corpus_alpha_vector: Vec<String>,
+    pub corpus_words_vector: Option<Vec<String>>,
+    pub corpus_numeral_vector: Option<Vec<String>>,
+    pub corpus_alpha_vector: Option<Vec<String>>,
     // This separates sections of a passphrase
     pub token_sparator: String,
 }
 
 impl Default for Options {
+    //TODO: Filter blank strings from resultant vector
     fn default() -> Self {
         let fake_corpus = "some default test words"
             .to_string()
@@ -65,17 +69,19 @@ impl Default for Options {
             .collect::<Vec<String>>();
         Options {
             target_entropy: 60.0,
-            corpus_words_vector: fake_corpus,
-            corpus_numeral_vector: crate::NUMBERS
+            corpus_words_vector: Some(fake_corpus),
+            corpus_numeral_vector: Some(crate::NUMBERS
                 .split("")
-                .into_iter()
+                //.into_iter()
+                .filter(|s| {![""].contains(s)})
                 .map(|s| s.to_string())
-                .collect::<Vec<String>>(),
-            corpus_alpha_vector: crate::LOWERCASE
+                .collect::<Vec<String>>()),
+            corpus_alpha_vector: Some(crate::LOWERCASE
                 .split("")
-                .into_iter()
+                //.into_iter()
+                .filter(|s| {![""].contains(s)})
                 .map(|s| s.to_string())
-                .collect::<Vec<String>>(),
+                .collect::<Vec<String>>()),
             token_sparator: "@".to_string(),
         }
     }
@@ -93,6 +99,7 @@ impl Clone for Options {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Password {
     pub data: String,
     pub entropy: f64,
@@ -121,20 +128,17 @@ impl Password {
                     ref key_num,
                     ref key_alp,
                 } => {
-                    //? There is a bug in this code that does not allow the generator to satisfy its directives
                     let key_alpha =
-                        random_pool_choice(*key_alp, options.corpus_alpha_vector.clone()).join("");
-                    //assert!(key_alpha.len() == *key_alp);
+                        random_pool_choice(*key_alp, options.corpus_alpha_vector.unwrap().clone()).join("");
 
                     let key_numer = 
-                        random_pool_choice(*key_num, options.corpus_numeral_vector.clone()).join("");
-                    //assert!(key_numer.len() == *key_num);
+                        random_pool_choice(*key_num, options.corpus_numeral_vector.unwrap().clone()).join("");
 
                     // Generate and process the result into colored strings for visability
                     let phrase_vec: Vec<ColoredString> =
                         random_pool_choice(
                             *word_count,
-                            options.corpus_words_vector.clone()
+                            options.corpus_words_vector.unwrap().clone()
                         ).into_iter()
                         .map(|w| w.green())
                         .collect::<Vec<ColoredString>>();
@@ -197,7 +201,8 @@ pub fn random_pool_choice(len: usize, set: Vec<String>) -> Vec<String> {
     while subset.len() < subset.capacity() {
         let sel_idx: usize = thread_rng().gen_range(0..set.len());
         let element = set[sel_idx].clone();
-        if element != "" { subset.push(element) }; //? The if statement here resolves a bug where blank characters are inserted.
+        //if element != "" { subset.push(element) }; //? prevents blank strings
+        subset.push(element)
     }
     return subset
 }
@@ -214,7 +219,7 @@ mod tests {
             let len = thread_rng().gen_range(0..50);
             let pool = crate::ASCII_SYMBOLS
                 .split("")
-                .into_iter()
+                //.into_iter()
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>();
             let genreturn = random_pool_choice(len, pool);

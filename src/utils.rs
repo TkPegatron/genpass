@@ -18,19 +18,3 @@ pub fn read_file(path: std::path::PathBuf) -> String {
       Ok(data) => data,
   };
 }
-
-pub fn display_encoded_config<T>(data_struct: &T) -> String
-where T: ?Sized + serde::ser::Serialize {
-    // Instanciate Pretty Configuration
-    let prettyconfig = ron::ser::PrettyConfig::new()
-        .depth_limit(2)
-        .separate_tuple_members(true)
-        .enumerate_arrays(true)
-        .struct_names(true);
-
-    // Return formated data
-    return ron::ser::to_string_pretty(
-        &data_struct,
-        prettyconfig
-    ).expect("Serialization failed");
-}
