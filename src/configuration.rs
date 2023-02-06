@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
+use log::{info, warn};
 
 // Structure containing options that control the application
 #[derive(Debug, Deserialize, Serialize)]
@@ -45,7 +46,7 @@ impl ApplicationOptions {
             Ok(data) => ron::de::from_str(&data).unwrap(),
             Err(why) => {
                 //TODO: Use a proper logging library
-                println!("Could not read {}: {}. Using default configuration...", 
+                warn!("Could not read {}: {}. Using default configuration...", 
                     config_file_path.display(), why
                 );
                 defaults
@@ -75,14 +76,14 @@ impl ApplicationOptions {
                 .collect::<Vec<String>>()
             },
             Err(why) => {
-                println!("Could not read {}: {}. Using default configuration...", 
+                warn!("Could not read {}: {}. Using default configuration...", 
                     corpus_file_path.display(), why
                 );
                 default_word_corpus.clone()
             }
         };
         
-        println!("Completed processing corpus...");
+        info!("Completed processing corpus...");
         
         
         let opt_default: generator::Options = generator::Options::default();

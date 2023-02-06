@@ -24,6 +24,8 @@
 //TODO: Format further and organize, I am sure there is a better organization structure
 pub mod utils;
 pub mod configuration;
+use std::cell::RefCell;
+use env_logger::Builder;
 use clap::Parser;
 pub mod generator;
 pub mod hash_utils;
@@ -45,13 +47,22 @@ struct Args {
     #[arg(long)]
     corpus: Option<String>,
     #[arg(short,long)]
-    range: Option<u32>
+    range: Option<u32>,
+    #[arg(short, long)]
+    verbose: bool
+}
 }
 
 fn main() {
     // Generate a fancy horse password
     // ===============================
     let args = Args::parse();
+
+    if args.verbose == true {
+        Builder::new().filter_level(log::LevelFilter::Debug).init();
+    } else {
+        Builder::new().filter_level(log::LevelFilter::Error).init();
+    }
 
     // -{ Build application configurations
     let appopts = ApplicationOptions::new(args.config, args.corpus);
