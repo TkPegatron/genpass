@@ -31,6 +31,10 @@ impl ApplicationOptions {
             None => config_home_path.join("words.txt")
         };
 
+        // Setup default values
+        let defaults = ApplicationOptions::default();
+        let default_word_corpus = defaults.password_options.corpus_words_vector.as_ref().unwrap().clone();
+
         // Read configuration file
         let config_data: ApplicationOptions = match fs::read_to_string(config_file_path.as_path()) {
             // Deserialize the configuration if it is available
@@ -40,11 +44,33 @@ impl ApplicationOptions {
                 println!("Could not read {}: {}. Using default configuration...", 
                     config_file_path.display(), why
                 );
-                ApplicationOptions::default()
+                defaults
             }
         };
 
-        let corpus_words_vector = ApplicationOptions::load_corpus(corpus_file_path);
+        //let corpus_words_vector = ApplicationOptions::load_corpus(corpus_file_path);
+        let corpus_words_vector: Vec<String> = match fs::read_to_string(corpus_file_path.as_path()) {
+            Ok(data) => {
+                data.split("\n")
+                //? This filters by word length
+                //.filter(|w| re_word_length_filter.is_match(w))
+                //? This filters blank lines
+                .filter(|s| {![""].contains(s)})
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect::<Vec<String>>()
+            },
+            Err(why) => {
+                println!("Could not read {}: {}. Using default configuration...", 
+                    corpus_file_path.display(), why
+                );
+                default_word_corpus.clone()
+            }
+        };
+        
+        println!("Completed processing corpus...");
+        
+        
         let opt_default: generator::Options = generator::Options::default();
 
         ApplicationOptions {
@@ -96,33 +122,20 @@ impl Default for ApplicationOptions {
         let config_file_path: PathBuf = config_home_path.join("config.ron");
         let corpus_file_path: PathBuf = config_home_path.join("words.txt");
 
-        let corpus_words_vector = "
-            abrase
-            abrased
-            abraser
-            abrash
-            abrasing
-            abrasiometer
-            abrasion
-            abrasions
-            abrasive
-            abrasively
-            abrasiveness
-            abrasives
-            abrastol
-        "
-        .split("\n")
-        .filter(|s| {![""].contains(s)})
-        .into_iter()
-        .map(|s| s.to_string())
-        .collect::<Vec<String>>();
+        let corpus_words_vector = 
+            "abrase abrased abraser abrash abrasing abrasiometer abrasion abrasions abrasive abrasively abrasiveness abrasives abrastol"
+            .split(" ")
+            .filter(|s| {![""].contains(s)})
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
 
         // =={ Instanceate a default configuration
         ApplicationOptions {
             config_file_path: config_file_path,
             corpus_file_path: corpus_file_path,
             password_style: generator::Styles::FancyHorse {
-                word_separator: "_-_".to_owned(),
+                word_separator: "-".to_owned(),
                 word_count: 3,
                 key_num: 5,
                 key_alp: 4,
