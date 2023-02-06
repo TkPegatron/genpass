@@ -17,7 +17,7 @@ pub struct ApplicationOptions {
 }
 
 impl ApplicationOptions {
-    pub fn new(fp_config: Option<&str>, fp_corpus: Option<&str>) -> ApplicationOptions {
+    pub fn new(fp_config: Option<String>, fp_corpus: Option<String>) -> ApplicationOptions {
         //TODO: Some of this can proably be simplified or optimized
         let config_home_path: PathBuf = get_default_homedir();
 

@@ -24,6 +24,7 @@
 //TODO: Format further and organize, I am sure there is a better organization structure
 pub mod utils;
 pub mod configuration;
+use clap::Parser;
 pub mod generator;
 pub mod hash_utils;
 use generator::Password;
@@ -36,21 +37,42 @@ pub const SYMBOLS: &str = ":;<=>?@!\"#$%&'()*+,-./[\\]^_`{|}~";
 pub const ASCII_SYMBOLS: &str =
     "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(long)]
+    config: Option<String>,
+    #[arg(long)]
+    corpus: Option<String>,
+    #[arg(short,long)]
+    range: Option<u32>
+}
+
+fn print_password(p: Password) {
+    //print!("\nPASS: {}\nENTR: {}\n", p.data, p.entropy)
+    println!("{}", p)
+}
+
 fn main() {
     // Generate a fancy horse password
     // ===============================
+    let args = Args::parse();
 
     // -{ Build application configurations
-    let appopts = ApplicationOptions::new(None, Some("/workspace/words.txt"));
+    let appopts = ApplicationOptions::new(args.config, args.corpus);
     //println!("{}", appopts);
 
     // -{ Display a collection of generated passwords
-    for _ in 0..5 {
-        // Generate a password struct
-        let password = Password::new(appopts.password_options.clone(), appopts.password_style.clone());
-        //print!("\nPASS: {}\nENTR: {}\n", password.data, password.entropy)
-        println!("{}", password)
-    }
+    match args.range {
+        Some(i) => {
+            for _ in 0..i {
+                print_password(Password::new(appopts.password_options.clone(), appopts.password_style.clone()))
+            }
+        },
+        None => {
+            print_password(Password::new(appopts.password_options.clone(), appopts.password_style.clone()))
+        }
+    };
 
     print!("\nEND OF LINE\n")
 }
