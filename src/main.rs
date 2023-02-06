@@ -24,7 +24,6 @@
 //TODO: Format further and organize, I am sure there is a better organization structure
 pub mod utils;
 pub mod configuration;
-use std::cell::RefCell;
 use env_logger::Builder;
 use clap::Parser;
 pub mod generator;
@@ -69,12 +68,9 @@ fn main() {
 
     // -{ Build application configurations
     let appopts = ApplicationOptions::new(args.config, args.corpus);
-    //println!("{}", appopts);
 
     // -{ Display a collection of generated passwords
-    let mut passwords: Vec<String> = Vec::new();
     for _ in 0..args.range.unwrap_or(1) {
-        //passwords.push(
         printpasswd(
             Password::new(
                 appopts.password_options.clone(),
@@ -82,6 +78,4 @@ fn main() {
             ).data
         )
     }
-
-    //println!("{}", passwords.join("\n"));
 }
