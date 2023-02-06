@@ -51,6 +51,9 @@ struct Args {
     #[arg(short, long)]
     verbose: bool
 }
+
+fn printpasswd(passwd: String) {
+    println!("{}", passwd)
 }
 
 fn main() {
@@ -70,26 +73,15 @@ fn main() {
 
     // -{ Display a collection of generated passwords
     let mut passwords: Vec<String> = Vec::new();
-    match args.range {
-        Some(i) => {
-            for _ in 0..i {
-                passwords.push(
-                    Password::new(
-                        appopts.password_options.clone(),
-                        appopts.password_style.clone()
-                    ).data
-                )
-            }
-        },
-        None => {
-            passwords.push(
-                Password::new(
-                    appopts.password_options.clone(),
-                    appopts.password_style.clone()
-                ).data
-            )
-        }
-    };
+    for _ in 0..args.range.unwrap_or(1) {
+        //passwords.push(
+        printpasswd(
+            Password::new(
+                appopts.password_options.clone(),
+                appopts.password_style.clone()
+            ).data
+        )
+    }
 
-    println!("{}", passwords.join("\n"));
+    //println!("{}", passwords.join("\n"));
 }
