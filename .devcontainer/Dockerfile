@@ -9,7 +9,7 @@ ARG USER_GID=$USER_UID
 ARG TZ=America/Detroit
 
 RUN apk add  --no-cache --upgrade \
-    curl git file tzdata gcc ca-certificates musl-dev gpg gpg-agent
+    curl git file tzdata gcc ca-certificates musl-dev gpg gpg-agent openssh-client
 
 # -{ MOD: Setup rust and cargo environment }
 
