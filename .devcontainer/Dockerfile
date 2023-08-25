@@ -9,10 +9,9 @@ ARG USER_GID=$USER_UID
 ARG TZ=America/Detroit
 
 RUN apk add  --no-cache --upgrade \
-    zsh bat direnv curl exa file git skim neovim starship tzdata \
-    gcc ca-certificates musl-dev gpg gpg-agent openssh-client
+    curl git file tzdata gcc ca-certificates musl-dev gpg gpg-agent
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+# -{ MOD: Setup rust and cargo environment }
 
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
@@ -37,4 +36,17 @@ RUN set -eux; \
     cargo --version; \
     rustc --version;
 
-RUN adduser --shell /bin/zsh --disabled-password $USERNAME
+RUN rustup component add rustfmt
+
+# -{ MOD: Configure userspace environment }
+
+RUN \
+    # Install dotfiles prereqs
+    apk add  --no-cache --upgrade \
+        zsh bat direnv exa stow skim starship pcre ; \
+    # Set the container's timezone
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \
+    # Add local user account inside container \
+    adduser --shell /bin/zsh --disabled-password $USERNAME
+
+USER $USERNAME
