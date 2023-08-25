@@ -1,0 +1,30 @@
+{
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"USERNAME": "${localEnv:USER}",
+			"UID": "1000"
+		}
+	},
+	"runArgs": ["--userns=keep-id"],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,Z",
+  "workspaceFolder": "/workspace",
+	"containerUser": "${localEnv:USER}",
+	"remoteUser": "${localEnv:USER}",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"rust-lang.rust-analyzer",
+				"dustypomerleau.rust-syntax",
+				"Swellaby.vscode-rust-test-adapter",
+				"aaron-bond.better-comments",
+				"mhutchie.git-graph",
+				"oderwat.indent-rainbow",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"medo64.render-crlf",
+				"vadimcn.vscode-lldb",
+				"panicbit.cargo"
+			]
+		}
+	},
+}
