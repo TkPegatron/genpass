@@ -1,42 +1,8 @@
-// This program will generate passwords in the following form.
-//
-// sddfg16162:Linking.Information.Serially
-//  │    │   │└ Passphrase ──────┼───────┘
-//  │    │   └ Separator         └ Passphrase_Separator
-//  │    └ Key_Numbers
-//  └ Key_Chars
-//
-
-// Considerations for controling the generator behavior
-//   Minimum length of words gathered from wordlist
-//   Minimum guestimated entropy acceptable to user
-//   Characters used as token seperators
-//   Number of words desired by user
-//   Style of password desired by user
-
-// Considerations for controlling the application behavior
-//   Where the configuration file is located
-//   Where the wordlist file is located
-
-// In-memory data needed
-//   Filtered word list
-
-//TODO: Format further and organize, I am sure there is a better organization structure
-pub mod utils;
-pub mod configuration;
-use env_logger::Builder;
+// Load Modules
+pub mod constants;
+pub mod pw_horse;
+// Load functions
 use clap::Parser;
-pub mod generator;
-pub mod hash_utils;
-use generator::Password;
-use configuration::ApplicationOptions;
-
-pub const UPPERCASE: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-pub const LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
-pub const NUMBERS: &str = "0123456789";
-pub const SYMBOLS: &str = ":;<=>?@!\"#$%&'()*+,-./[\\]^_`{|}~";
-pub const ASCII_SYMBOLS: &str =
-    "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -45,37 +11,12 @@ struct Args {
     config: Option<String>,
     #[arg(long)]
     corpus: Option<String>,
-    #[arg(short,long)]
-    range: Option<u32>,
     #[arg(short, long)]
-    verbose: bool
-}
-
-fn printpasswd(passwd: String) {
-    println!("{}", passwd)
+    verbose: bool,
 }
 
 fn main() {
-    // Generate a fancy horse password
-    // ===============================
     let args = Args::parse();
-
-    if args.verbose == true {
-        Builder::new().filter_level(log::LevelFilter::Debug).init();
-    } else {
-        Builder::new().filter_level(log::LevelFilter::Error).init();
-    }
-
-    // -{ Build application configurations
-    let appopts = ApplicationOptions::new(args.config, args.corpus);
-
-    // -{ Display a collection of generated passwords
-    for _ in 0..args.range.unwrap_or(1) {
-        printpasswd(
-            Password::new(
-                appopts.password_options.clone(),
-                appopts.password_style.clone()
-            ).data
-        )
-    }
+    let corpus = genpass::load_words(args.corpus);
+    println!("{}", pw_horse::Password::new(corpus));
 }
